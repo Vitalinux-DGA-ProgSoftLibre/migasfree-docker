@@ -1,83 +1,74 @@
+# Migasfree Docker DGA
 
-# Migasfree Docker
+Proporciona el entorno de producción para migasfree en **un host**.
+Adaptado de Migasfree-Docker (versión 4.15) https://github.com/migasfree/migasfree-docker/ para:
 
-Provides an isolated migasfree server to run in **one host**.
+* Proporcionar alias adicionales.
+* Evitar la llamada a las variables de entorno.
+* Acceso a la BD mediante localhost del equipo anfitrión.
 
+## Requerimientos
 
-## Requirements
+Al igual que para migasfree-docker:
 
-* ***A FQDN for your server***: If you don't have a FQDN you can add a register in /etc/hosts in order to emulate it in a test environment, or you can use the IP server too.
-
-* ***docker engine installed***: https://docs.docker.com/engine/installation/
-
-* ***docker-compose installed***: https://docs.docker.com/compose/install/
-
-* ***haveged installed***: Migasfree server needs a certain entropy in the host to generate gpg keys. If your host is based in Debian run:
+* ***Un nombre FQDN***: O sino dispones, se puede configurar a través de direccionamienot IP
+* ***docker engine instalado***: https://docs.docker.com/engine/installation/
+* ***docker-compose instalado***: https://docs.docker.com/compose/install/
+* ***haveged instalado***: Migasfree necesita entropía. En Debian:
 
 ```sh
        apt-get install haveged
 ```
 
+## Instalación
 
-## Install 
-
-* ***Download docker-compose.yml and variables file***:
+* ***Descargar docker-compose***:
 
 ```sh
         mkdir mf
         cd mf
-        wget https://github.com/migasfree/migasfree-docker/raw/master/mf/docker-compose.yml
-        wget https://github.com/migasfree/migasfree-docker/raw/master/mf/variables
+        wget https://github.com/Vitalinux-DGA-ProgSoftLibre/migasfree-docker/raw/master/mf/docker-compose.yml
 ```
 
-* ***Configure***:
+* ***Configurar***:
 
 ```sh
-        vi variables
+        cp .env_example .env
+        vi .env
 ```
 
-
-## Run
+## Ejecutar
 
 ```sh
-        . variables
         docker-compose up -d
 ```
 
+## Prueba
 
-## Test it!
-
-Open any browser and enter the website, e.g.:
-
-```sh
-xdg-open http://<FQDN>
-```
-
+Abre un navegador e indica en la URL el FQDN designado en las  variables de entorno
 
 ## Settings
 
-Edit the file **/var/lib/migasfree/FQDN/conf/settings.py** to customize the migasfree-server (http://fun-with-migasfree.readthedocs.org/en/master/part05.html#ajustes-del-servidor-migasfree).
-
+* Editar el archivo **/var/lib/migasfree/FQDN/conf/settings.py** para personliazar migasfree-server (http://fun-with-migasfree.readthedocs.org/en/master/part05.html#ajustes-del-servidor-migasfree).
+* Se pueden añadir alias o configuración adicional al servicio web/nginx desplegado, usando un archivo adicional:
+  * Fichero **/var/lib/migasfree/FQDN/sites-available/aliases.conf**
 
 ## Backup the Database
 
 Migasfree server makes a dump of the database at POSTGRES_CRON config variable, but running this command will force the dump of the database in **/var/lib/migasfree/FQDN/dump/migasfree.sql** :
 
 ```sh
-docker exec -ti migasfree.mydomain.com-db backup
+docker exec -ti FQDN-db backup
 ```
-
 
 ## Restore the DataBase
 
 Copy a dump file in **/var/lib/migasfree/FQDN/dump/migasfree.sql** and run:
 
 ```sh
-docker exec -ti migasfree.mydomain.com-db restore
+docker exec -ti FQDN-db restore
 ```
 
+## Respaldo de los datos
 
-## Data persistence
-
-In **/var/lib/migasfree/** you will have all data. Make yourself a regular backup of this directory.
-
+En **/var/lib/migasfree/** se almacenan todos los datos variables y persistentes del proyecto.

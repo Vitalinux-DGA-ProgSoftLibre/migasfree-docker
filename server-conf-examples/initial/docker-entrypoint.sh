@@ -44,7 +44,7 @@ server {
     server_name $FQDN $HOST localhost 127.0.0.1;
     client_max_body_size 500M;
 
-    include /etc/nginx/sites-available/aliases[.]conf;
+    include /etc/nginx/sites-available/aliases;
 
     location /static {
         alias %(static_root)s;

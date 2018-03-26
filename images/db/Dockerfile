@@ -1,5 +1,5 @@
 FROM debian:stretch
-MAINTAINER Alberto Gacías <alberto@migasfree.org>
+LABEL maintainer="Alberto Gacías <alberto@migasfree.org>"
 
 ENV TERM=xterm \
     DEBIAN_FRONTEND=noninteractive \
