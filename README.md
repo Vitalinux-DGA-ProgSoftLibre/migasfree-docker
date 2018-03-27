@@ -1,7 +1,7 @@
 # Migasfree Docker DGA
 
 Proporciona el entorno de producción para migasfree en **un host**.
-Adaptado de Migasfree-Docker (versión 4.15) https://github.com/migasfree/migasfree-docker/ para:
+Adaptado de Migasfree-Docker (rama master/desarrollo) https://github.com/migasfree/migasfree-docker/ para:
 
 * Proporcionar alias adicionales.
 * Evitar la llamada a las variables de entorno.
@@ -22,25 +22,29 @@ Al igual que para migasfree-docker:
 
 ## Instalación
 
-* ***Descargar docker-compose***:
+* ***Descargar docker-compose e imágenes para levantar el entorno***:
 
 ```sh
-        mkdir mf
-        cd mf
-        wget https://github.com/Vitalinux-DGA-ProgSoftLibre/migasfree-docker/raw/master/mf/docker-compose.yml
+        git clone https://github.com/Vitalinux-DGA-ProgSoftLibre/migasfree-docker.git
 ```
 
 * ***Configurar***:
 
 ```sh
+        cd migasfree-docker
         cp .env_example .env
         vi .env
 ```
+## Uso de una versión anterior (4.15 por ejemplo) estable
+
+La configuración actual despliega la versión en desarollo (master) del servidor migasfree. Si queremos usar la versión estable anterior (4.15), antes de construir y lanzar los contenedores deberemos indicar en el archivo migasfree-docker/images/server/VERSION **4.15** en lugar de **master**
+
+* Tener en cuenta que si lanzamos el contenedor en versión master, la BD existente se migrará a dicha versión y no podremos lanzar el contendor con la versión 4.15 en un futuro usando dicha BD. Tendríamos que restaurar para ello una copia de respaldo de la BD generada en 4.15 o antes.
 
 ## Ejecutar
-
+Hasta que tengamos una imagen preparada, construiremos la imagen en base a las especificaciones:
 ```sh
-        docker-compose up -d
+        docker-compose up --build -d
 ```
 
 ## Prueba
@@ -50,8 +54,7 @@ Abre un navegador e indica en la URL el FQDN designado en las  variables de ento
 ## Settings
 
 * Editar el archivo **/var/lib/migasfree/FQDN/conf/settings.py** para personliazar migasfree-server (http://fun-with-migasfree.readthedocs.org/en/master/part05.html#ajustes-del-servidor-migasfree).
-* Se pueden añadir alias o configuración adicional al servicio web/nginx desplegado, usando un archivo adicional:
-  * Fichero **/var/lib/migasfree/FQDN/sites-available/aliases.conf**
+* Se pueden añadir alias (u otras configuración adicional) al servicio web/nginx desplegado. Para ello crea un archivo **/var/lib/migasfree/FQDN/sites-available/aliases.conf** con la configuración deseada
 
 ## Backup the Database
 
@@ -72,3 +75,4 @@ docker exec -ti FQDN-db restore
 ## Respaldo de los datos
 
 En **/var/lib/migasfree/** se almacenan todos los datos variables y persistentes del proyecto.
+
