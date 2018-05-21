@@ -4,12 +4,8 @@ services:
 
   server:
     hostname: server
-    build:
-      context: ./images/server
-#    image: migasfree/server:${MIGASFREE_VERSION}
+    image: vitalinux/migasfreeserver:${MIGASFREE_VERSION}
     container_name: ${FQDN}-server
-#    env_file:
-#      - .env
     environment:
       - FQDN=${FQDN}
       - TZ=${TZ}
@@ -24,23 +20,15 @@ services:
       - "/var/lib/migasfree/${FQDN}/public:/var/migasfree/repo"
       - "/var/lib/migasfree/${FQDN}/keys:/usr/share/migasfree-server"
       - "/var/lib/migasfree/${FQDN}/sites-available:/etc/nginx/sites-available"
-#      - "./server-conf/sites-available:/etc/nginx/sites-available"
-#      - "./server-conf/initial:/initial"
       - "/var/www:/var/www"
-#    entrypoint:
-#      - /initial/docker-entrypoint.sh
 
   db:
     hostname: db
-    build:
-      context: ./images/db
-#    image: migasfree/db:${MIGASFREE_VERSION_DB}
+    image: vitalinux/migasfreedb:${MIGASFREE_VERSION_DB}
     container_name: ${FQDN}-db
-#    env_file:
-#      - .env
     environment:
       - POSTGRES_CRON=${POSTGRES_CRON}
-      - POSTGRES_HOST=${FQDN}
+      - POSTGRES_HOST=db
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -48,7 +36,6 @@ services:
       - POSTGRES_ALLOW_HOSTS=${POSTGRES_ALLOW_HOSTS}
       - TZ=${TZ}
     restart: always
-# Queremos poder acceder a la BD para consultas o modificaciones de forma local
     ports:
     - "127.0.0.1:5432:5432"
     volumes:

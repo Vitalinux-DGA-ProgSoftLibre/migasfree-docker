@@ -44,7 +44,7 @@ server {
     server_name $FQDN $HOST localhost 127.0.0.1;
     client_max_body_size 500M;
 
-    include /etc/nginx/sites-available/aliases[.]conf;
+    include /etc/nginx/sites-available/add_directives[.]conf;
 
     location /static {
         alias %(static_root)s;
@@ -75,7 +75,10 @@ server {
         proxy_connect_timeout 10;
         proxy_send_timeout 600;
         proxy_read_timeout 600;
+        include /etc/nginx/sites-available/add_root_options[.]conf;
     }
+
+
 }
 """ % {'static_root': settings.STATIC_ROOT, 'public': settings.MIGASFREE_PUBLIC_DIR}
 target = open('/etc/nginx/sites-available/migasfree.conf', 'w')
