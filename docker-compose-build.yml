@@ -2,38 +2,30 @@ version: '3'
 
 services:
 
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./certs:/etc/nginx/certs
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-
   server:
     hostname: server
-    image: vitalinux/migasfreeserver:${MIGASFREE_VERSION}
+    build:
+      context: ./images/server
     container_name: ${FQDN}-server
     environment:
-      - HTTPS_METHOD=noredirect
-      - VIRTUAL_HOST=migasfree.educa.aragon.lan
       - FQDN=${FQDN}
       - TZ=${TZ}
       - POSTGRES_PORT=${POSTGRES_PORT}
     restart: always
     depends_on:
       - db
+    ports:
+      - "${MIGASFREE_PORT}:80"
     volumes:
       - "/var/lib/migasfree/${FQDN}/conf:/etc/migasfree-server"
       - "/var/lib/migasfree/${FQDN}/public:/var/migasfree/repo"
       - "/var/lib/migasfree/${FQDN}/keys:/usr/share/migasfree-server"
       - "/var/lib/migasfree/${FQDN}/sites-available:/etc/nginx/sites-available"
       - "/var/www:/var/www"
-
   db:
     hostname: db
-    image: vitalinux/migasfreedb:${MIGASFREE_VERSION_DB}
+    build:
+      context: ./images/db
     container_name: ${FQDN}-db
     environment:
       - POSTGRES_CRON=${POSTGRES_CRON}

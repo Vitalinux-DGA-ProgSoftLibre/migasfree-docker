@@ -1,5 +1,4 @@
 *.env
 *migasfree.conf
 *settings.py
-*docker-compose-build.yml
-*docker-compose-version.yml
+certs/*
