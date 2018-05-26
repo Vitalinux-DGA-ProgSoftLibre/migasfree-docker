@@ -3,9 +3,10 @@
 Proporciona el entorno de producción para migasfree en **un host**.
 Adaptado de Migasfree-Docker (rama master/desarrollo) https://github.com/migasfree/migasfree-docker/ para:
 
-* Proporcionar configuraciones adicionales del servicio web (alias y conf. adicionales den server y location).
-* Evitar la llamada a las variables de entorno.
-* Acceso a la BD mediante localhost del equipo anfitrión.
+* Proporcionar configuraciones adicionales del servicio web (alias y configuracions adicionales en server y location).
+* Evita la llamada a las variables de entorno.
+* Acceso a la BD mediante localhost del equipo anfitrión para test. Se aisla en una red de backend la BD
+* Acceso por http y https mediante proxy y generación de certificados con LetsEncrypt
 
 ## Requerimientos
 
@@ -27,7 +28,10 @@ Al igual que para migasfree-docker:
 ```sh
         git clone https://github.com/Vitalinux-DGA-ProgSoftLibre/migasfree-docker.git
 ```
-
+Obtener la última versión para el nginx-proxy:
+```sh
+        curl https://raw.githubusercontent.com/jwilder/nginx-proxy/master/nginx.tmpl > migasfree-docker/nginx.tmpl
+```
 * ***Configurar***:
 
 ```sh
@@ -35,7 +39,7 @@ Al igual que para migasfree-docker:
         cp .env_example .env
         vi .env
 ```
-*Sobre todo deberás definir las variables FQDN y MIGASFREE_VERSION. Para éste último valor consulta siguiente apartado*
+*Sobre todo deberás definir las variables FQDN, EMAIL y MIGASFREE_VERSION. Para éste último valor consulta siguiente apartado*
 
 ## Versionado. 4.15 o desarrollo
 
@@ -48,18 +52,27 @@ El servidor migasfree que se desplegará dependerá de la Versión que indiques 
 ```sh
         docker-compose up -d
 ```
+¿Dudas sobre qué version de docker-compose usar?
+
+* docker-compose.yml: Si queremos desplegar el servicio mediante http y https con certificado autogenerado por letsencrypt.
+
+* docker-compose_proxy_one_cont.yml: Igual que el anterior pero en este caso nginx-proxy está en un mismo contenedor. Teóricamente algo más inseguro que el anterior...https://github.com/jwilder/nginx-proxy#separate-containers
+
+* docker-compose-simple-version.yml: Despliega el servicio sin proxy http/https, exponiendo el servidor directamente. No será necesario construir las imágenes al obtenerlas del dockerhub
+
+* docker-compose-simple-build.yml: Despliegua el servicio sin proxy http/https y es necesario contruir las imagénes ```docker-compose up --build -d ``` en base a las imágenes del repositorio.
 
 ## Prueba
 
-Abre un navegador e indica en la URL el FQDN designado en las  variables de entorno
+Abre un navegador e indica en la URL el FQDN designado en las  variables de entorno. La primera vez puede demorar algo de tiempo si usas nginx-proxy, al tener que generarse los certificados.
 
 ## Settings
 
 * Editar el archivo **/var/lib/migasfree/FQDN/conf/settings.py** para personliazar migasfree-server (http://fun-with-migasfree.readthedocs.org/en/master/part05.html#ajustes-del-servidor-migasfree).
-  * Si el contenedor de la base de datos va a estar en la misma máquina que el server se recomienda que el valor de la variable HOST sea 'db' (nombre del contenedor)
+  * Si el contenedor de la base de datos va a estar en la misma máquina que el server se recomienda que el valor de la variable HOST sea 'db' (nombre del contenedor) establecido por defecto
 * Se pueden añadir alias (u otras configuración adicionales) al servicio web/nginx desplegado. Para ello tenemos dos opciones:
-  * Crear un archivo **/var/lib/migasfree/FQDN/sites-available/add_directives.conf** con la configuración que desarmos añadir a nivel de "server" en nginx
-  * Crear un archivo **/var/lib/migasfree/FQDN/sites-available/add_root_options.conf** con la configuración que desarmos añadir a nivel de "location /" en nginx
+  * Crear un archivo **/var/lib/migasfree/FQDN/sites-available/add_directives.conf** con la configuración que desarmos añadir a nivel de "server" en nginx (ejemplo en server-conf-examples)
+  * Crear un archivo **/var/lib/migasfree/FQDN/sites-available/add_root_options.conf** con la configuración que desarmos añadir a nivel de "location /" en nginx (ejemplo en server-conf-examples)
 
 ## Backup the Database
 
@@ -85,3 +98,4 @@ En **/var/lib/migasfree/** se almacenan todos los datos variables y persistentes
 * data -> Ficheros de la BD. Se realiza un backup en dump
 * keys -> Claves de la comunicación cliente-servidor. Es importante guardar las keys generadas en el servidor y restaurarlas de forma adecuada en un servidor en producción para que los clientes mantengan la consistencia con el servidor. De igual forma se deben guardar con el propietario (890) y permisos adecuados (solo lectura).
 * public -> Repositorios y otros recursos compartidos vía web (a través de http://FQDN/public/)
+* frontend -> Directorio con los datos usaos por el proxy. No sería necesario en éste caso guardar los datos.
