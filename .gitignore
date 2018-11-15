@@ -2,3 +2,5 @@
 *migasfree.conf
 *settings.py
 certs/*
+./start.sh
+./stop.sh

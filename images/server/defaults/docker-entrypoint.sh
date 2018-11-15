@@ -105,17 +105,20 @@ function set_nginx_server_permissions()
     owner "$_TMP_DIR/migasfree.log" $_USER
 }
 
-
+function run_as_www-data
+{
+    su - www-data -s /bin/bash -c "$1"
+}
 
 function nginx_init
 {
 
     create_nginx_config
 
-    python -c "import django; django.setup(); from migasfree.server.secure import create_server_keys; create_server_keys()"
-
+    run_as_www-data 'export GPG_TTY=$(tty);DJANGO_SETTINGS_MODULE=migasfree.settings.production python -c "import django; django.setup(); from migasfree.server.secure import create_server_keys; create_server_keys()"'
+ 
     /etc/init.d/nginx start
-    set_nginx_server_permissions
+
 }
 
 
@@ -188,6 +191,8 @@ function wait_server {
 function migasfree_init
 {
 
+    set_nginx_server_permissions
+
     wait_postgresql
 
     wait_server
@@ -230,7 +235,6 @@ function wait_nginx {
 
 set_TZ
 migasfree_init
-
 
 echo "Starting circus"
 set_circus_numprocesses
