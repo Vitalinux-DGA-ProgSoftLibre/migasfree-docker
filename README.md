@@ -111,7 +111,8 @@ En **/var/lib/migasfree/** se almacenan todos los datos variables y persistentes
 ## Apendice A: Ajuste de los logs
 Por defecto los contenedores no generan gran cantidad de logs, salvo en el caso del proxy inverso (que registra todas las conexiones entrantes)
 Se hace necesario "limitar" la cantidad de registros que se almacenan. Para ello podemos editar las directivas establecidas en el docker-compose.yml. En el ejemplo propuesto se guardan en 5 archivos de hasta 200M cada uno. Puede interesarnos ajustar dicha parametrización según nuestro entorno:
-```    logging:
+```    
+    logging:
       driver: "json-file"
       options:
         max-size: "200m"
