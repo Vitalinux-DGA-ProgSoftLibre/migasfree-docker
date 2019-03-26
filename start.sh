@@ -1,7 +1,7 @@
 #!/bin/bash
 
-[ "$1" = "" ] && echo "Debes indicar una version...4.15 o master" && exit 1
-[ "$1" != "4.15" ] && [ "$1" != "master" ] && echo "Debes indicar una version...4.15 o master" && exit 1
+[ "$1" = "" ] && echo "Debes indicar una version...4.16 o ¿master?" && exit 1
+[ "$1" != "master" ] && [ "$1" != "4.16" ] && echo "Debes indicar una version...4.16 o master" && exit 1
 VERSION="$1"
 [ ! -f ".env" ] && echo "No existe el archivo .env...salimos" && exit 1
 sed  -i "s/^MIGASFREE_VERSION=.*/MIGASFREE_VERSION=${VERSION}/" .env
@@ -16,7 +16,7 @@ fi
 [ ! -d "${DIRTRABAJO}_${VERSION}_data" ] && echo "El directorio de trabajo ${DIRTRABAJO}_${VERSION}_data NO existe....revisa" && exit 1
 # Creamos el enlace simbólico
 sudo ln -s "${DIRTRABAJO}_${VERSION}_data" "${DIRTRABAJO}"
-# Forzamos que se escriba en disco....parece que si va muy rápido el docker crea antes las estructuras y se lia la cosa bien...
+# Forzamos que se escriba en disco....parece que si va muy rápido el docker crea antes las estructuras y se lia la cosa pero bien...
 sync && sleep 1
 # Lanzamos docker modo simple
 docker-compose -f docker-compose-simple-version.yml up -d

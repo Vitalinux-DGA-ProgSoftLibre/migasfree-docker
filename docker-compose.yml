@@ -16,6 +16,11 @@ services:
       - "/var/lib/migasfree/${FQDN}/frontend/vhost.d:/etc/nginx/vhost.d"
       - "/var/lib/migasfree/${FQDN}/frontend/conf.d:/etc/nginx/conf.d"
       - "/var/lib/migasfree/${FQDN}/frontend/html:/usr/share/nginx/html"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "5"
     networks:
       - frontend
   

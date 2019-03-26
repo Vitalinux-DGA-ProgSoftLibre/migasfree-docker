@@ -39,28 +39,35 @@ Obtener la última versión para el nginx-proxy:
         cp .env_example .env
         vi .env
 ```
-*Sobre todo deberás definir las variables FQDN, EMAIL y MIGASFREE_VERSION. Para éste último valor consulta siguiente apartado*
+*Sobre todo deberás definir las variables FQDN, EMAIL y MIGASFREE_VERSION en el fichero .env. Para éste último valor consulta siguiente apartado*
 
-## Versionado. 4.15 o desarrollo
+## Versionado. 4.16 o desarrollo
 
-El servidor migasfree que se desplegará dependerá de la Versión que indiques en el fichero .env (concretamente con la variable MIGASFREE_VERSION) Si queremos usar la versión estable indicaremos el valor **4.15**. Si queremos la última versión de desarollo:**master**
+El servidor migasfree que se desplegará dependerá de la Versión que indiques en el fichero .env (concretamente con la variable MIGASFREE_VERSION) Si queremos usar la versión estable indicaremos el valor **4.16**. Si queremos la última versión de desarollo:**master**
 
-* Tener en cuenta que si lanzamos el contenedor en versión master se creará o migrará la BD de la aplicación acorde a la versión del servidor, no pudiendo levantar un servidor con la versión 4.15 en un futuro usando la misma BD (datos). Tendríamos que restaurar para ello una copia de respaldo de la BD generada en 4.15 o antes.
+* Tener en cuenta que si lanzamos el contenedor en versión master se creará o migrará la BD de la aplicación acorde a la versión del servidor, no pudiendo levantar un servidor con la versión 4.16 en un futuro usando la misma BD (datos). Tendríamos que restaurar para ello una copia de respaldo de la BD generada en 4.16 o antes.
 
 ## Ejecutar
 
 ```sh
         docker-compose up -d
 ```
-¿Dudas sobre qué version de docker-compose usar?
+En éste caso se lanzará todo la infraestructura en base a la definición descrita en el docker-compose.yml
+Si quieres una infraestructura más simple, deberías usar otro fichero de definición de docker-compose.
+¿Qué version de docker-compose usar?
 
 * docker-compose.yml: Si queremos desplegar el servicio mediante http y https con certificado autogenerado por letsencrypt.
 
 * docker-compose_proxy_one_cont.yml: Igual que el anterior pero en este caso nginx-proxy está en un mismo contenedor. Teóricamente algo más inseguro que el anterior...https://github.com/jwilder/nginx-proxy#separate-containers
 
-* docker-compose-simple-version.yml: Despliega el servicio sin proxy http/https, exponiendo el servidor directamente. No será necesario construir las imágenes al obtenerlas del dockerhub
+* docker-compose-simple-version.yml: Despliega el servicio sin proxy http/https, exponiendo el servidor directamente. No será necesario construir las imágenes al obtenerlas del dockerhub. **Recomendado para entornos de pruebas**
 
 * docker-compose-simple-build.yml: Despliegua el servicio sin proxy http/https y es necesario contruir las imagénes ```docker-compose up --build -d ``` en base a las imágenes del repositorio.
+
+Recuerda que para lanzar un docker-compose.yml diferente, debes cambiarle el nombre a docker-compose.yml o levantarlo usando:
+```sh
+        docker-compose -f FICHERO.YML up -d
+```
 
 ## Prueba
 
@@ -68,39 +75,52 @@ Abre un navegador e indica en la URL el FQDN designado en las  variables de ento
 
 ## Settings
 
-* Editar el archivo **/var/lib/migasfree/FQDN/conf/settings.py** para personliazar migasfree-server (http://fun-with-migasfree.readthedocs.org/en/master/part05.html#ajustes-del-servidor-migasfree).
+* Editar el archivo **/var/lib/migasfree/FQDN/conf/settings.py** para personalizar migasfree-server (http://fun-with-migasfree.readthedocs.org/en/master/part05.html#ajustes-del-servidor-migasfree).
   * Si el contenedor de la base de datos va a estar en la misma máquina que el server se recomienda que el valor de la variable HOST sea 'db' (nombre del contenedor) establecido por defecto
-* Se pueden añadir alias (u otras configuración adicionales) al servicio web/nginx desplegado. Para ello tenemos dos opciones:
+* Se pueden añadir alias (u otras configuración adicionales) al servicio web/nginx desplegado en función de requerimientos extra. Para ello tenemos dos opciones:
   * Crear un archivo **/var/lib/migasfree/FQDN/sites-available/add_directives.conf** con la configuración que desarmos añadir a nivel de "server" en nginx (ejemplo en server-conf-examples)
-  * Crear un archivo **/var/lib/migasfree/FQDN/sites-available/add_root_options.conf** con la configuración que desarmos añadir a nivel de "location /" en nginx (ejemplo en server-conf-examples)
+  * Crear un archivo **/var/lib/migasfree/FQDN/sites-available/add_root_options.conf** con la configuración que desarmos añadir a nivel del location raiz "location /" en nginx (ejemplo en server-conf-examples)
 
-## Backup the Database
+## Backup de la Base de Datos
 
-Migasfree server makes a dump of the database at POSTGRES_CRON config variable, but running this command will force the dump of the database in **/var/lib/migasfree/FQDN/dump/migasfree.sql** :
+Migasfree server realiza un dump de la base de datos (de forma perdiódica según indicamos en POSTGRES_CRON en el fichero .env), pero podemos realizar dicha copia en cualquier momento, quedando en **/var/lib/migasfree/FQDN/dump/migasfree.sql**
 
 ```sh
 docker exec -ti FQDN-db backup
 ```
 
-## Restore the DataBase
+## Restaurar la Base de Datos
 
-Copy a dump file in **/var/lib/migasfree/FQDN/dump/migasfree.sql** and run:
+Copiar el fichero dump en **/var/lib/migasfree/FQDN/dump/migasfree.sql** y ejecutar:
 
 ```sh
 docker exec -ti FQDN-db restore
 ```
 
-## Respaldo de los datos
-
-En **/var/lib/migasfree/** se almacenan todos los datos variables y persistentes del proyecto. No olvides hacer las copias de seguridad.
+## Respaldo y resturación de los datos
+Si queremos restaurar un sistema completo, deberemos copiar (y restaurar cuando proceda) lo siguiente.
+En **/var/lib/migasfree/** se almacenan todos los datos variables y persistentes del proyecto.
 
 * conf -> Fichero de configuración básica del servidor
-* data -> Ficheros de la BD. Se realiza un backup en dump
+* data -> Ficheros de la BD. Se realiza un backup en dump. No sería necesario al restaurarlo con un fichero dump.
 * keys -> Claves de la comunicación cliente-servidor. Es importante guardar las keys generadas en el servidor y restaurarlas de forma adecuada en un servidor en producción para que los clientes mantengan la consistencia con el servidor. De igual forma se deben guardar con el propietario (890) y permisos adecuados (solo lectura).
 * public -> Repositorios y otros recursos compartidos vía web (a través de http://FQDN/public/)
-* frontend -> Directorio con los datos usaos por el proxy. No sería necesario en éste caso guardar los datos.
+* sites-available -> Si hemos creado ficheros add_directives.conf o add_root_options.conf personalizados. migasfree.conf no es necesario ya que lo crea el contenedor al arrancar.
+* frontend -> Directorio con los datos usados por el proxy. No sería necesario en éste caso guardar los datos.
 
-## Apendice A: Modificar Directorio Raiz Docker /var/lib/docker (Docker Root Dir)
+## Apendice A: Ajuste de los logs
+Por defecto los contenedores no generan gran cantidad de logs, salvo en el caso del proxy inverso (que registra todas las conexiones entrantes)
+Se hace necesario "limitar" la cantidad de registros que se almacenan. Para ello podemos editar las directivas establecidas en el docker-compose.yml. En el ejemplo propuesto se guardan en 5 archivos de hasta 200M cada uno. Puede interesarnos ajustar dicha parametrización según nuestro entorno:
+```    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "5"
+```
+
+## Apendice B: Habilitar CORS
+
+## Apendice C: Modificar Directorio Raiz Docker /var/lib/docker (Docker Root Dir)
 
 Tras [instalar **docker** en Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/) sus contenedores o imágenes son almacenadas por defecto en **/var/lib/docker**.  En el caso de que queramos modifcar el destino haremos lo siguiente:
 
