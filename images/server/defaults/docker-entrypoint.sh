@@ -46,9 +46,26 @@ server {
 
     include /etc/nginx/sites-available/add_directives[.]conf;
 
+    # STATIC
+    # ======
     location /static {
         alias %(static_root)s;
     }
+    
+    # SOURCES
+    # =======
+    #  PACKAGES deb
+    location ~* /src/?(.*)deb\$ {
+        alias /var/migasfree/repo/\$1deb;
+        error_page 404 = @backend;
+    }
+    #  METADATA
+    location ~ /src/?(.*)\$ {
+        error_page 404 = @backend;
+    }
+
+    # DEPLOYMENTS
+    # ===========
     location /public {
         alias %(public)s;
         autoindex on;
@@ -57,6 +74,9 @@ server {
         deny all;
         return 404;
     }
+    
+    # REPO (compatibility)
+    # ====================
     location /repo {
         alias %(public)s;
         autoindex on;
@@ -65,7 +85,17 @@ server {
         deny all;
         return 404;
     }
+
+    # BACKEND
+    # =======
     location / {
+        try_files \$uri @backend;
+    }
+    location @backend {
+        add_header 'Access-Control-Allow-Origin' "$http_origin";
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With';
         proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host \$http_host;
         proxy_set_header X-Forwarded-Host \$server_name;
