@@ -1,7 +1,7 @@
 #!/bin/bash
 
-[ "$1" = "" ] && echo "Debes indicar una version...4.16 o ¿master?" && exit 1
-[ "$1" != "master" ] && [ "$1" != "4.16" ] && echo "Debes indicar una version...4.16 o master" && exit 1
+[ "$1" = "" ] && echo "Debes indicar una version...4.16 o 4.17" && exit 1
+[ "$1" != "4.17" ] && [ "$1" != "4.16" ] && echo "Debes indicar una version...4.16 o 4.17" && exit 1
 VERSION="$1"
 [ ! -f ".env" ] && echo "No existe el archivo .env...salimos" && exit 1
 sed  -i "s/^MIGASFREE_VERSION=.*/MIGASFREE_VERSION=${VERSION}/" .env
