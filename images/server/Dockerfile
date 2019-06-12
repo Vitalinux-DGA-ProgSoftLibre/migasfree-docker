@@ -1,5 +1,6 @@
 FROM debian:stretch
 LABEL maintainer="Alberto Gacías <alberto@migasfree.org>"
+LABEL adapter="Ignacio Sancho <sannacho@gmail.com>"
 
 COPY VERSION /VERSION
 
