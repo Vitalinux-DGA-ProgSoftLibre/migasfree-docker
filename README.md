@@ -119,40 +119,64 @@ Se hace necesario "limitar" la cantidad de registros que se almacenan. Para ello
         max-file: "5"
 ```
 
-## Apendice B: Habilitar CORS
+## Apendice B: Personalizar parámetros del contenedor proxy
+
+Si necesitamos personalizar algún parámetro del servidor proxy de cabecera (no confundir con la personalización del nginx interno del server visto en settings), podemos indicarlo creando un archivo personal en el directorio conf.d del contenedor. Ejemplo:
+
+```bash
+cat /var/lib/migasfree/${FQDN}/frontend/conf.d/my_options.conf
+client_max_body_size 100m;
+```
+
+También se podría personalizar no para todos los vhost que gestiona el proxy, sino para algunos concretos:
+
+```bash
+cat /var/lib/migasfree/${FQDN}/frontend/vhost.d/migasfree.midominio.com
+client_max_body_size 100m;
+```
 
 ## Apendice C: Modificar Directorio Raiz Docker /var/lib/docker (Docker Root Dir)
 
 Tras [instalar **docker** en Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/) sus contenedores o imágenes son almacenadas por defecto en **/var/lib/docker**.  En el caso de que queramos modifcar el destino haremos lo siguiente:
 
 1. Comprobamos la ubicación actual del directorio raíz:
+
 ```bash
 docker info | grep "Docker Root Dir"
 Docker Root Dir: /var/lib/docker
 ```
+
 2. Paramos el servicio **docker** para modificar su configuración, su **Docker Root Dir**, comprobando que realmente esta parado:
-```
+
+```bash
 ps aux | grep -i docker | grep -v grep
 sudo systemctl stop docker
 ps aux | grep -i docker | grep -v grep
 ```
+
 3. Creamos el nuevo directorio de destino y el fichero de configuración de **docker** que lo tendrá en cuenta:
-```
+
+```bash
 mkdir /new/docker/root/dir # p.e. mkdir /home/arturo/docker
 sudo nano /etc/docker/daemon.json
 ```
+
 ```json
 // Contenido de daemon.json
 {
   "data-root": "/new/docker/root/dir"
 }
 ```
+
 4. Sincronizamos el antiguo directorio **Docker Root Dir** con su nuevo destino, y volvemos a activar el servicio **docker**:
-```
+
+```bash
 sudo rsync -axPS /var/lib/docker/ /home/arturo/docker
 sudo systemctl start docker
 ```
+
 5. Por último, comprobamos que el serivio vuelve a estar corriendo, que el nuevo directorio **Docker Root Dir** es el que hemos configurado, comprobamos con **docker run hello-world** que todo funciona correctamente y eliminamos los datos antiguos:
+
 ```bash
 docker info | grep "Docker Root Dir"
 Docker Root Dir: /new/docker/root/dir
@@ -160,4 +184,32 @@ Docker Root Dir: /new/docker/root/dir
 ps aux | grep -i docker | grep -v grep
 docker run hello-world
 sudo rm -r /var/lib/docker
+```
+
+## Apendice D: Bug en 4.16 que se soluciona en versiones posteriores
+
+Hasta actualizar a la versión 4.17.1? (la 4.16 y 17 lo tienen aún) del server, hay un bug con que provoca que ciertos equipos (los AMD Athlon) no se detecten correctamente la mac a la hora de obtener el uuid del equipo.
+Mientras no se corrija, y si hubiera que reinicar los contenedores (se destruyen por un down), ojo, que habría que modificar:
+En el server, el file:
+/usr/local/lib/python2.7/dist-packages/migasfree/server/models/hw_node.py debe modificarse la función get_mac_address:
+```python
+    @staticmethod
+    def get_mac_address(computer_id):
+        query = HwNode.objects.filter(
+            computer=computer_id
+        ).filter(
+            Q(
+                name__icontains='network',
+                class_name='network'
+            ) | Q(
+                name__icontains='bridge', 
+                class_name='bridge'
+            )
+        )
+        lst = []
+        for iface in query:
+            if validate_mac(iface.serial):
+                lst.append(iface.serial.upper().replace(':', ''))
+
+        return ''.join(lst)
 ```
