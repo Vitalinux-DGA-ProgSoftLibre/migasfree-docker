@@ -4,10 +4,16 @@ services:
 
   nginx-front:
     image: jwilder/nginx-proxy:alpine
+    #image: jwilder/nginx-proxy:pre18
     labels:
       com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
     container_name: nginx-front
     restart: always
+    environment:
+      # Habilitamos cifrados más antiguos para curl de 14.04
+      # Con la útima versión de nginx solo se soporta ssl_protocols TLSv1.2 TLSv1.3;
+      # Y con ésta opción tendremos: ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+      SSL_POLICY: Mozilla-Old
     ports:
       - "80:80"
       - "443:443"
@@ -28,6 +34,7 @@ services:
   letsencrypt:
     hostname: letsencrypt
     image: jrcs/letsencrypt-nginx-proxy-companion
+    #image: jrcs/letsencrypt-nginx-proxy-companion:pre18
     container_name: letsencrypt
     restart: always
     volumes:
