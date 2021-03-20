@@ -58,6 +58,8 @@ RUN _TAG=$(cat /VERSION) && \
 
 COPY defaults/etc/logrotate.d/nginx /etc/logrotate.d/nginx
 
+RUN chmod 0644 /etc/logrotate.d/nginx
+
 COPY defaults/docker-entrypoint.sh /docker-entrypoint.sh
 
 ENTRYPOINT ["/bin/bash", "/docker-entrypoint.sh"]
